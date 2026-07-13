@@ -6,7 +6,14 @@ const config: Config = {
     "./components/**/*.{ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        navy: "#00193A",
+        "navy-light": "#0A2A55",
+        brand: "#FF5A19",
+        "brand-dark": "#E14B0F",
+      },
+    },
   },
   plugins: [],
 };
