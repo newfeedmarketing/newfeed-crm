@@ -71,6 +71,8 @@ const badgeStyles: Record<string, string> = {
   ativo: "bg-green-100 text-green-800",
   pausado: "bg-amber-100 text-amber-800",
   inadimplente: "bg-red-100 text-red-800",
+  mensal: "bg-sky-100 text-sky-800",
+  freela: "bg-purple-100 text-purple-800",
 };
 
 export function StatusBadge({ status }: { status: string }) {
