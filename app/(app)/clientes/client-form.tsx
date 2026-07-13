@@ -29,6 +29,18 @@ export default function ClientForm({
       <input name="address" placeholder="Endereço"
         defaultValue={d.address ?? ""} className={inputClass} />
       <div>
+        <label className="text-xs text-slate-500">Tipo de cliente</label>
+        <select name="client_type" defaultValue={d.client_type ?? "mensal"} className={inputClass}>
+          <option value="mensal">Mensal (recorrente)</option>
+          <option value="freela">Freela (serviços pontuais)</option>
+        </select>
+      </div>
+      <div>
+        <label className="text-xs text-slate-500">Valor mensal (R$) — só p/ mensais</label>
+        <input name="monthly_value" type="number" step="0.01" min="0"
+          defaultValue={d.monthly_value ?? ""} className={inputClass} />
+      </div>
+      <div>
         <label className="text-xs text-slate-500">Status</label>
         <select name="status" defaultValue={d.status ?? "ativo"} className={inputClass}>
           <option value="ativo">Ativo</option>
