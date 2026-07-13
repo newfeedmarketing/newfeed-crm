@@ -28,10 +28,10 @@ export function StatCard({
   tone?: "neutral" | "green" | "red" | "blue" | "amber";
 }) {
   const tones: Record<string, string> = {
-    neutral: "text-slate-900",
+    neutral: "text-navy",
     green: "text-green-600",
     red: "text-red-600",
-    blue: "text-blue-600",
+    blue: "text-navy-light",
     amber: "text-amber-600",
   };
   return (
@@ -105,7 +105,7 @@ export function AlertBanner({
 export const inputClass =
   "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white";
 export const btnPrimary =
-  "rounded-lg bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:bg-slate-700";
+  "rounded-lg bg-brand text-white px-4 py-2 text-sm font-medium hover:bg-brand-dark";
 export const btnSmall =
   "rounded-md bg-slate-100 border border-slate-300 px-2.5 py-1 text-xs font-medium hover:bg-slate-200";
 export const thClass =
