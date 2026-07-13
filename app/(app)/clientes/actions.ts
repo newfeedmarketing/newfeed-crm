@@ -122,6 +122,82 @@ export async function undoMonthPaid(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+function dueDateFor(monthISO: string, day: number): string {
+  const [y, m] = monthISO.split("-").map(Number);
+  const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return `${monthISO}-${String(Math.min(day, lastDay)).padStart(2, "0")}`;
+}
+
+/**
+ * Gera as cobranças mensais de TODO o período do contrato
+ * (do mês de início até o mês atual ou o fim do contrato),
+ * pulando meses que já têm cobrança recorrente.
+ */
+export async function generateContractCharges(formData: FormData) {
+  const supabase = createSupabase();
+  const clientId = String(formData.get("id"));
+
+  const { data: client } = await supabase
+    .from("clients")
+    .select("start_date, payment_due_day, monthly_value, contract_end_date")
+    .eq("id", clientId)
+    .single();
+
+  if (!client?.start_date) throw new Error("Defina 'Cliente desde' primeiro.");
+  const amount = Number(client.monthly_value || 0);
+  if (amount <= 0) throw new Error("Defina o valor mensal primeiro.");
+
+  const today = new Date().toISOString().slice(0, 10);
+  const currentMonth = today.slice(0, 7);
+  const startMonth = client.start_date.slice(0, 7);
+  const endMonth = client.contract_end_date
+    ? client.contract_end_date.slice(0, 7) < currentMonth
+      ? client.contract_end_date.slice(0, 7)
+      : currentMonth
+    : currentMonth;
+  const day = Number(client.payment_due_day || client.start_date.slice(8, 10));
+
+  const { data: existing } = await supabase
+    .from("revenues")
+    .select("due_date")
+    .eq("client_id", clientId)
+    .eq("type", "recorrente")
+    .neq("status", "cancelado");
+  const existingMonths = new Set(
+    (existing ?? []).map((r: any) => (r.due_date || "").slice(0, 7))
+  );
+
+  const rows = [];
+  let [y, m] = startMonth.split("-").map(Number);
+  while (`${y}-${String(m).padStart(2, "0")}` <= endMonth) {
+    const monthISO = `${y}-${String(m).padStart(2, "0")}`;
+    if (!existingMonths.has(monthISO)) {
+      rows.push({
+        client_id: clientId,
+        description: "Mensalidade",
+        type: "recorrente",
+        category: "mensalidade",
+        amount,
+        due_date: dueDateFor(monthISO, day),
+        status: "pendente",
+      });
+    }
+    m += 1;
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+  }
+
+  if (rows.length > 0) {
+    const { error } = await supabase.from("revenues").insert(rows);
+    if (error) throw new Error(error.message);
+  }
+  revalidatePath("/clientes");
+  revalidatePath("/receitas");
+  revalidatePath("/dashboard");
+}
+
 export async function deleteClient(formData: FormData) {
   const supabase = createSupabase();
   const id = String(formData.get("id"));
