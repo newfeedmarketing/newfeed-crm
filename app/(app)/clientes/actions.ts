@@ -17,6 +17,7 @@ function clientFromForm(formData: FormData) {
     address: String(formData.get("address") || "") || null,
     status: String(formData.get("status") || "ativo"),
     start_date: String(formData.get("start_date") || "") || null,
+    contract_end_date: String(formData.get("contract_end_date") || "") || null,
     payment_due_day: formData.get("payment_due_day")
       ? Number(formData.get("payment_due_day"))
       : null,

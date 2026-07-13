@@ -58,6 +58,11 @@ export default function ClientForm({
         <input name="payment_due_day" type="number" min="1" max="31"
           defaultValue={d.payment_due_day ?? ""} className={inputClass} />
       </div>
+      <div>
+        <label className="text-xs text-slate-500">Fim do contrato (opcional)</label>
+        <input name="contract_end_date" type="date"
+          defaultValue={d.contract_end_date ?? ""} className={inputClass} />
+      </div>
       <textarea name="notes" placeholder="Observações" rows={2}
         defaultValue={d.notes ?? ""} className={`${inputClass} lg:col-span-2`} />
       <div className="flex items-end">

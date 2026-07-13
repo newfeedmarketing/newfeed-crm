@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { formatBRL, todayISO } from "@/lib/format";
+import { formatBRL, formatDate, todayISO, addDaysISO } from "@/lib/format";
 import {
   Card,
   StatusBadge,
@@ -84,6 +84,28 @@ export default async function ClientesPage() {
           {isMensal ? formatBRL(s.valorMensal) : "—"}
         </td>
         <td className={tdClass}>
+          {c.payment_due_day ? (
+            <span>dia {c.payment_due_day}</span>
+          ) : (
+            <span className="text-slate-400">—</span>
+          )}
+          {c.contract_end_date && (
+            <span
+              className={`block text-xs ${
+                c.contract_end_date < today
+                  ? "text-red-600 font-medium"
+                  : c.contract_end_date <= addDaysISO(today, 30)
+                  ? "text-amber-600 font-medium"
+                  : "text-slate-400"
+              }`}
+            >
+              {c.contract_end_date < today
+                ? `encerrado ${formatDate(c.contract_end_date)}`
+                : `até ${formatDate(c.contract_end_date)}`}
+            </span>
+          )}
+        </td>
+        <td className={tdClass}>
           {!isMensal ? (
             <span className="text-slate-400">—</span>
           ) : s.pagoMes ? (
@@ -132,13 +154,14 @@ export default async function ClientesPage() {
 
   const table = (rows: any[], emptyMsg: string) => (
     <Card className="overflow-x-auto p-0">
-      <table className="w-full min-w-[820px]">
+      <table className="w-full min-w-[960px]">
         <thead className="border-b border-slate-200 bg-slate-50">
           <tr>
             <th className={thClass}>Empresa</th>
             <th className={thClass}>Tipo</th>
             <th className={thClass}>Status</th>
             <th className={thClass}>Valor mensal</th>
+            <th className={thClass}>Vencimento / contrato</th>
             <th className={thClass}>Pago este mês</th>
             <th className={thClass}>Total faturado</th>
             <th className={thClass}>Ações</th>
@@ -147,7 +170,7 @@ export default async function ClientesPage() {
         <tbody className="divide-y divide-slate-100">
           {rows.length === 0 && (
             <tr>
-              <td className={`${tdClass} text-slate-400`} colSpan={7}>
+              <td className={`${tdClass} text-slate-400`} colSpan={8}>
                 {emptyMsg}
               </td>
             </tr>
