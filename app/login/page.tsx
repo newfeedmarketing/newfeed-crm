@@ -11,8 +11,13 @@ export default function LoginPage({
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">New Feed CRM</h1>
-          <p className="text-slate-500 mt-1">Gestão financeira da agência</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-horizontal.png"
+            alt="New Feed Marketing"
+            className="mx-auto h-14 w-auto"
+          />
+          <p className="text-slate-500 mt-4">CRM · Gestão financeira da agência</p>
         </div>
 
         {searchParams.error && (
@@ -43,7 +48,7 @@ export default function LoginPage({
               placeholder="Senha"
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
             />
-            <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-700">
+            <button className="w-full rounded-lg bg-brand text-white py-2 text-sm font-medium hover:bg-brand-dark">
               Entrar
             </button>
           </form>
