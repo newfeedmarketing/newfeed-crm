@@ -63,6 +63,16 @@ export default function ClientForm({
         <input name="contract_end_date" type="date"
           defaultValue={d.contract_end_date ?? ""} className={inputClass} />
       </div>
+      <div>
+        <label className="text-xs text-slate-500">Link do Drive (pasta do cliente)</label>
+        <input name="drive_url" type="url" placeholder="https://drive.google.com/..."
+          defaultValue={d.drive_url ?? ""} className={inputClass} />
+      </div>
+      <div>
+        <label className="text-xs text-slate-500">Link de resultados mensais</label>
+        <input name="results_url" type="url" placeholder="https://... (relatório, dashboard)"
+          defaultValue={d.results_url ?? ""} className={inputClass} />
+      </div>
       <textarea name="notes" placeholder="Observações" rows={2}
         defaultValue={d.notes ?? ""} className={`${inputClass} lg:col-span-2`} />
       <div className="flex items-end">

@@ -18,6 +18,8 @@ function clientFromForm(formData: FormData) {
     status: String(formData.get("status") || "ativo"),
     start_date: String(formData.get("start_date") || "") || null,
     contract_end_date: String(formData.get("contract_end_date") || "") || null,
+    drive_url: String(formData.get("drive_url") || "") || null,
+    results_url: String(formData.get("results_url") || "") || null,
     payment_due_day: formData.get("payment_due_day")
       ? Number(formData.get("payment_due_day"))
       : null,
@@ -120,6 +122,37 @@ export async function undoMonthPaid(formData: FormData) {
   revalidatePath("/clientes");
   revalidatePath("/receitas");
   revalidatePath("/dashboard");
+}
+
+/** Anexa (ou substitui) o contrato do cliente no Storage. */
+export async function uploadContract(formData: FormData) {
+  const supabase = createSupabase();
+  const clientId = String(formData.get("id"));
+  const file = formData.get("contract_file") as File | null;
+
+  if (!file || file.size === 0) throw new Error("Selecione um arquivo.");
+  if (file.size > 10 * 1024 * 1024)
+    throw new Error("Arquivo muito grande (máximo 10 MB).");
+
+  const ext = (file.name.split(".").pop() || "pdf").toLowerCase();
+  const path = `contratos/${clientId}/contrato.${ext}`;
+  const bytes = await file.arrayBuffer();
+
+  const { error } = await supabase.storage
+    .from("anexos")
+    .upload(path, bytes, {
+      contentType: file.type || "application/octet-stream",
+      upsert: true,
+    });
+  if (error) throw new Error("Erro no upload: " + error.message);
+
+  await supabase
+    .from("clients")
+    .update({ contract_file_path: path, updated_at: new Date().toISOString() })
+    .eq("id", clientId);
+
+  revalidatePath(`/clientes/${clientId}`);
+  revalidatePath("/clientes");
 }
 
 function dueDateFor(monthISO: string, day: number): string {
