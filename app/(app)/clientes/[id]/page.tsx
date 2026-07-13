@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { displayStatus } from "@/lib/finance/calculations";
 import { formatBRL, formatDate, todayISO } from "@/lib/format";
-import { Card, StatusBadge, StatCard, MoneyCard, thClass, tdClass } from "@/components/ui";
-import { updateClient } from "../actions";
+import { Card, StatusBadge, StatCard, MoneyCard, btnSmall, thClass, tdClass } from "@/components/ui";
+import { updateClient, generateContractCharges } from "../actions";
+import { markReceived } from "../../receitas/actions";
 import ClientForm from "../client-form";
 
 export const dynamic = "force-dynamic";
@@ -126,8 +127,16 @@ export default async function ClienteDetalhePage({
       </Card>
 
       <Card className="overflow-x-auto p-0">
-        <div className="px-5 pt-4 pb-2 font-semibold text-sm">
-          Histórico financeiro
+        <div className="px-5 pt-4 pb-2 flex items-center justify-between flex-wrap gap-2">
+          <span className="font-semibold text-sm">Histórico financeiro</span>
+          {isMensal && valorMensal > 0 && client.start_date && (
+            <form action={generateContractCharges}>
+              <input type="hidden" name="id" value={client.id} />
+              <button className={btnSmall} title="Cria as mensalidades de todos os meses do contrato que ainda não existem (passados e atual)">
+                ⟳ Gerar cobranças do contrato
+              </button>
+            </form>
+          )}
         </div>
         <table className="w-full min-w-[560px]">
           <thead className="border-b border-slate-200 bg-slate-50">
@@ -137,12 +146,13 @@ export default async function ClienteDetalhePage({
               <th className={thClass}>Vencimento</th>
               <th className={thClass}>Pagamento</th>
               <th className={thClass}>Status</th>
+              <th className={thClass}>Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {rows.length === 0 && (
               <tr>
-                <td className={`${tdClass} text-slate-400`} colSpan={5}>
+                <td className={`${tdClass} text-slate-400`} colSpan={6}>
                   Nenhuma receita para este cliente ainda.
                 </td>
               </tr>
@@ -155,6 +165,16 @@ export default async function ClienteDetalhePage({
                 <td className={tdClass}>{formatDate(r.paid_date)}</td>
                 <td className={tdClass}>
                   <StatusBadge status={displayStatus(r.status, r.due_date, today)} />
+                </td>
+                <td className={tdClass}>
+                  {r.status === "pendente" && (
+                    <form action={markReceived}>
+                      <input type="hidden" name="id" value={r.id} />
+                      <button className={`${btnSmall} !bg-green-50 !border-green-300 text-green-700`}>
+                        ✓ Recebido
+                      </button>
+                    </form>
+                  )}
                 </td>
               </tr>
             ))}
