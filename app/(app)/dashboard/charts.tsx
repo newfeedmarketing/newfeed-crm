@@ -57,7 +57,7 @@ export default function Charts({
               type="monotone"
               dataKey="lucro"
               name="Lucro"
-              stroke="#2563eb"
+              stroke="#FF5A19"
               strokeWidth={2}
               dot={{ r: 3 }}
             />
