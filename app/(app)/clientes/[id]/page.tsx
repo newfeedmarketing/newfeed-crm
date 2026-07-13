@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { displayStatus } from "@/lib/finance/calculations";
 import { formatBRL, formatDate, todayISO } from "@/lib/format";
-import { Card, StatusBadge, thClass, tdClass } from "@/components/ui";
+import { Card, StatusBadge, StatCard, MoneyCard, thClass, tdClass } from "@/components/ui";
 import { updateClient } from "../actions";
 import ClientForm from "../client-form";
 
@@ -34,6 +34,22 @@ export default async function ClienteDetalhePage({
     .filter((r: any) => r.status === "pendente")
     .reduce((a: number, r: any) => a + Number(r.amount), 0);
 
+  // ---- Tempo de contrato e faturamento previsto ----------------
+  const isMensal = (client.client_type ?? "mensal") === "mensal";
+  const valorMensal = Number(client.monthly_value || 0);
+  let mesesContrato = 0;
+  if (client.start_date) {
+    const [y1, m1] = client.start_date.split("-").map(Number);
+    const [y2, m2] = today.split("-").map(Number);
+    mesesContrato = Math.max((y2 - y1) * 12 + (m2 - m1) + 1, 1); // conta o mês inicial
+  }
+  const previstoContrato = isMensal ? valorMensal * mesesContrato : 0;
+  const diferenca = totalRecebido - previstoContrato;
+  const tempoLabel =
+    mesesContrato >= 12
+      ? `${Math.floor(mesesContrato / 12)}a ${mesesContrato % 12}m`
+      : `${mesesContrato} ${mesesContrato === 1 ? "mês" : "meses"}`;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -42,13 +58,58 @@ export default async function ClienteDetalhePage({
             ← Clientes
           </Link>
           <h1 className="text-2xl font-bold flex items-center gap-3">
-            {client.company_name} <StatusBadge status={client.status} />
+            {client.company_name} <StatusBadge status={client.status} />{" "}
+            <StatusBadge status={isMensal ? "mensal" : "freela"} />
           </h1>
           <p className="text-sm text-slate-500">
-            Total recebido: <strong>{formatBRL(totalRecebido)}</strong> · Em
-            aberto: <strong>{formatBRL(emAberto)}</strong>
+            Em aberto: <strong>{formatBRL(emAberto)}</strong>
           </p>
         </div>
+      </div>
+
+      {/* Faturamento perante o tempo de contrato */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          label="Tempo de contrato"
+          value={client.start_date ? tempoLabel : "—"}
+          hint={
+            client.start_date
+              ? `cliente desde ${formatDate(client.start_date)}`
+              : "defina 'Cliente desde' abaixo"
+          }
+        />
+        <MoneyCard
+          label="Total faturado"
+          value={totalRecebido}
+          tone="green"
+          hint="tudo que já foi recebido deste cliente"
+        />
+        {isMensal ? (
+          <>
+            <MoneyCard
+              label="Previsto pelo contrato"
+              value={previstoContrato}
+              tone="blue"
+              hint={
+                valorMensal > 0
+                  ? `${formatBRL(valorMensal)} × ${tempoLabel}`
+                  : "defina o valor mensal abaixo"
+              }
+            />
+            <MoneyCard
+              label={diferenca >= 0 ? "Acima do previsto" : "Faltando receber"}
+              value={Math.abs(diferenca)}
+              tone={diferenca >= 0 ? "green" : "amber"}
+              hint="faturado − previsto no período"
+            />
+          </>
+        ) : (
+          <StatCard
+            label="Tipo"
+            value="Freela"
+            hint="serviços pontuais — sem previsão mensal"
+          />
+        )}
       </div>
 
       <Card>
