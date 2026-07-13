@@ -13,7 +13,7 @@ export default async function ClientesPage() {
     supabase.from("clients").select("*").order("company_name"),
     supabase
       .from("revenues")
-      .select("client_id, amount, status, paid_date, due_date"),
+      .select("client_id, amount, status, paid_date, due_date, type"),
   ]);
   const clients = cliRes.data ?? [];
   const revenues = revRes.data ?? [];
@@ -23,6 +23,14 @@ export default async function ClientesPage() {
   const stats = (id: string) => {
     const rows = revenues.filter((r: any) => r.client_id === id);
     return {
+      valorMensal: rows
+        .filter(
+          (r: any) =>
+            r.type === "recorrente" &&
+            r.status !== "cancelado" &&
+            (r.due_date || "").slice(0, 7) === currentMonth
+        )
+        .reduce((a: number, r: any) => a + Number(r.amount), 0),
       recebidoMes: rows
         .filter((r: any) => r.status === "recebido" && (r.paid_date || "").slice(0, 7) === currentMonth)
         .reduce((a: number, r: any) => a + Number(r.amount), 0),
@@ -70,6 +78,7 @@ export default async function ClientesPage() {
               <th className={thClass}>Empresa</th>
               <th className={thClass}>Responsável</th>
               <th className={thClass}>Status</th>
+              <th className={thClass}>Valor mensal</th>
               <th className={thClass}>Recebido no mês</th>
               <th className={thClass}>Em aberto</th>
               <th className={thClass}>Ações</th>
@@ -78,7 +87,7 @@ export default async function ClientesPage() {
           <tbody className="divide-y divide-slate-100">
             {clients.length === 0 && (
               <tr>
-                <td className={`${tdClass} text-slate-400`} colSpan={6}>
+                <td className={`${tdClass} text-slate-400`} colSpan={7}>
                   Nenhum cliente cadastrado ainda — comece pelo botão acima.
                 </td>
               </tr>
@@ -101,6 +110,9 @@ export default async function ClientesPage() {
                   </td>
                   <td className={tdClass}>
                     <StatusBadge status={c.status} />
+                  </td>
+                  <td className={`${tdClass} font-semibold text-navy`}>
+                    {formatBRL(s.valorMensal)}
                   </td>
                   <td className={tdClass}>{formatBRL(s.recebidoMes)}</td>
                   <td className={tdClass}>{formatBRL(s.emAberto)}</td>
