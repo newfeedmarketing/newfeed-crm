@@ -34,23 +34,30 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen md:flex">
       {/* Sidebar (desktop) / topo rolável (celular) */}
-      <aside className="md:w-56 md:min-h-screen bg-slate-900 text-slate-100 md:flex md:flex-col shrink-0">
-        <div className="px-4 py-4 font-bold text-lg hidden md:block">
-          New Feed CRM
+      <aside className="md:w-56 md:min-h-screen bg-navy text-slate-100 md:flex md:flex-col shrink-0">
+        <div className="px-4 py-5 hidden md:flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/symbol.png" alt="New Feed" className="h-7 w-auto" />
+          <div className="leading-tight">
+            <span className="font-bold text-base text-white block">NewFeed</span>
+            <span className="text-[9px] tracking-[0.2em] text-brand font-semibold">
+              MARKETING
+            </span>
+          </div>
         </div>
         <nav className="flex md:flex-col overflow-x-auto md:overflow-visible px-2 md:px-3 py-2 gap-1">
           {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm hover:bg-slate-700/60"
+              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm hover:bg-navy-light"
             >
               <span className="mr-2">{item.icon}</span>
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="md:mt-auto px-4 py-3 border-t border-slate-700/50 hidden md:block">
+        <div className="md:mt-auto px-4 py-3 border-t border-white/10 hidden md:block">
           <p className="text-xs text-slate-400 truncate">
             {profile?.full_name ?? user?.email}
           </p>
