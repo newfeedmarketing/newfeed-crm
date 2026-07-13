@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { displayStatus } from "@/lib/finance/calculations";
 import { formatBRL, formatDate, todayISO } from "@/lib/format";
 import { Card, StatusBadge, StatCard, MoneyCard, btnSmall, thClass, tdClass } from "@/components/ui";
-import { updateClient, generateContractCharges } from "../actions";
+import { updateClient, generateContractCharges, uploadContract } from "../actions";
 import { markReceived } from "../../receitas/actions";
 import ClientForm from "../client-form";
 
@@ -26,6 +26,16 @@ export default async function ClienteDetalhePage({
   ]);
 
   if (!client) notFound();
+
+  // URL temporária (1h) para abrir o contrato anexado no bucket privado
+  let contractUrl: string | null = null;
+  if (client.contract_file_path) {
+    const { data: signed } = await supabase.storage
+      .from("anexos")
+      .createSignedUrl(client.contract_file_path, 3600);
+    contractUrl = signed?.signedUrl ?? null;
+  }
+
   const rows = revenues ?? [];
   const today = todayISO();
   const totalRecebido = rows
@@ -120,6 +130,52 @@ export default async function ClienteDetalhePage({
           />
         )}
       </div>
+
+      {/* Contrato e links do cliente */}
+      <Card>
+        <h3 className="font-semibold text-sm mb-3">Contrato & links</h3>
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {contractUrl ? (
+            <a href={contractUrl} target="_blank" rel="noopener noreferrer"
+              className="rounded-lg bg-navy text-white px-3 py-1.5 text-sm font-medium hover:bg-navy-light">
+              📄 Ver contrato anexado
+            </a>
+          ) : (
+            <span className="text-sm text-slate-400">
+              Nenhum contrato anexado ainda.
+            </span>
+          )}
+          {client.drive_url && (
+            <a href={client.drive_url} target="_blank" rel="noopener noreferrer"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50">
+              📁 Drive do cliente
+            </a>
+          )}
+          {client.results_url && (
+            <a href={client.results_url} target="_blank" rel="noopener noreferrer"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50">
+              📊 Resultados mensais
+            </a>
+          )}
+        </div>
+        <form action={uploadContract} className="flex flex-wrap items-center gap-2">
+          <input type="hidden" name="id" value={client.id} />
+          <input
+            type="file"
+            name="contract_file"
+            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+            required
+            className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-200"
+          />
+          <button className="rounded-lg bg-brand text-white px-3 py-1.5 text-sm font-medium hover:bg-brand-dark">
+            {contractUrl ? "Substituir contrato" : "Anexar contrato"}
+          </button>
+          <span className="text-xs text-slate-400">PDF, Word ou imagem · máx. 10 MB</span>
+        </form>
+        <p className="text-xs text-slate-400 mt-2">
+          Os links do Drive e de resultados são editados nos campos do formulário abaixo.
+        </p>
+      </Card>
 
       <Card>
         <h3 className="font-semibold text-sm mb-4">Dados do cliente</h3>
