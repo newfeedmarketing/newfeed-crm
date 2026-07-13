@@ -72,11 +72,19 @@ export default async function ClienteDetalhePage({
         <StatCard
           label="Tempo de contrato"
           value={client.start_date ? tempoLabel : "—"}
-          hint={
+          hint={[
             client.start_date
-              ? `cliente desde ${formatDate(client.start_date)}`
-              : "defina 'Cliente desde' abaixo"
-          }
+              ? `desde ${formatDate(client.start_date)}`
+              : "defina 'Cliente desde' abaixo",
+            client.contract_end_date
+              ? client.contract_end_date < today
+                ? `⚠️ encerrado em ${formatDate(client.contract_end_date)}`
+                : `até ${formatDate(client.contract_end_date)}`
+              : null,
+            client.payment_due_day ? `vence dia ${client.payment_due_day}` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         />
         <MoneyCard
           label="Total faturado"
